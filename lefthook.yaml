@@ -1,0 +1,18 @@
+pre-commit:
+  commands:
+    server:format:
+      root: server/
+      run: "hatch run dev:ruff format"
+      stage_fixed: true
+    server:lint:
+      root: server/
+      run: "hatch run dev:ruff check --fix"
+      stage_fixed: true
+    server:typecheck:
+      root: server/
+      run: "hatch run dev:basedpyright"
+
+commit-msg:
+  scripts:
+    "template-checker":
+      runner: bash

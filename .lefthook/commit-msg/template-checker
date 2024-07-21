@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# This script takes in some text from STDIN (presumably a commit message)
+# and validates whether it adheres to our commit message format.
+#
+# We are using Conventional Commits as a commit message format.
+# See: https://www.conventionalcommits.org/en/v1.0.0/
+
+INPUT_FILE=$1
+
+PATTERN="^((chore|ci|deps|docs|feat|fix|internal|perf|refactor|revert|test|version)(\([a-z0-9\-]+\))?(!)?(: (.*\s*)*))"
+grep -E "$PATTERN" $INPUT_FILE
+MATCH=$?
+
+if [ $MATCH -ne 0 ]; then
+  msg=$(cat <<EOF
+Bad commit message. Must be in Conventional Commits style.
+See: https://www.conventionalcommits.org/en/v1.0.0/
+
+The commit message was not deleted. If you want to reuse it, copy the contents
+of ".git/COMMIT_MSG".
+EOF
+  )
+  echo "$msg"
+  exit 1
+fi
+
