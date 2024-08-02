@@ -1,0 +1,16 @@
+version: "3"
+
+services:
+  server:
+    build:
+      context: .
+      target: dev 
+    ports:
+      - "8000:80"
+      - "5678:5678"
+    volumes:
+      - type: bind
+        source: src/
+        target: /usr/app/src
+        read_only: true
+

@@ -2,6 +2,8 @@ version: "3"
 
 services:
   server:
-    build: .
+    build: 
+      context: .
+      target: prod
     ports:
-      - "80:8000"
+      - "8000:80"
