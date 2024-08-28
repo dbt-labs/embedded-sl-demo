@@ -1,13 +1,14 @@
+import datetime as dt
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Annotated
 
 from dbtsl.asyncio import AsyncSemanticLayerClient
 from fastapi import Depends, FastAPI, Header, HTTPException
-from pydantic.main import BaseModel
 
+import src.out_models as out
 from src.db import db
-from src.models import AuthContext
+from src.models import AuthContext, StoreEmployee
 from src.settings import settings
 
 sl = AsyncSemanticLayerClient(
@@ -18,7 +19,7 @@ sl = AsyncSemanticLayerClient(
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncIterator[None]:  # noqa: D
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Setup a global SL session."""
     async with sl.session():
         yield
@@ -63,28 +64,28 @@ AuthDependency = Annotated[AuthContext, Depends(auth)]
 app = FastAPI(lifespan=lifespan)
 
 
-class UserOutput(BaseModel):
-    id: int
-    name: str
-    store_location_name: str
-
-
-@app.get("/users/me")
-async def get_me(auth: AuthDependency) -> UserOutput:
+@app.get("/users/me", response_model=out.User)
+async def get_me(auth: AuthDependency) -> StoreEmployee:
     """Show the current user."""
     return auth.employee
 
 
-@app.get("/orders")
-async def get_orders(auth: AuthDependency) -> str:
-    """Get an Arrow buffer with daily orders for the current shop."""
-    # TODO: add streaming query with record batches to the SDK
-    # this should simplify this logic
+@app.get("/orders/daily")
+async def get_orders(auth: AuthDependency) -> out.MetricsGroupedBy[dt.date, float]:
+    """Get a buffer with daily orders for the current shop."""
+    metric = "order_total"
+    group_by = "metric_time__day"
+
     table = await sl.query(
-        metrics=["order_total"],
+        metrics=[metric],
         where=[f"{{{{ Dimension('location__location_name') }}}} = '{auth.employee.store_location_name}'"],
-        group_by=["metric_time__day"],
+        group_by=[group_by],
     )
-    print(table)
-    # TODO: stream results to client
-    return "ok"
+
+    metrics_list: list[float] = table[metric.upper()].to_pylist()
+    group_by_list: list[dt.date] = table[group_by.upper()].to_pylist()
+
+    return out.MetricsGroupedBy[dt.date, float](
+        metrics=[out.Series[float](name=metric, data=metrics_list)],
+        group_by=out.Series[dt.date](name=group_by, data=group_by_list),
+    )

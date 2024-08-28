@@ -4,7 +4,7 @@ from src.models import StoreEmployee
 class Database:
     """A fake database with fake data to illustrate the purpose."""
 
-    def __init__(self) -> None:
+    def __init__(self) -> None:  # noqa: D107
         self._users: dict[int, StoreEmployee] = {}
 
     def insert_user(self, user: StoreEmployee) -> None:

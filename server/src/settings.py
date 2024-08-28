@@ -17,4 +17,4 @@ class Settings(BaseSettings):
     sl: SemanticLayerSettings
 
 
-settings = Settings()
+settings = Settings()  # type: ignore
