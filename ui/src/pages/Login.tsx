@@ -15,8 +15,9 @@ export default function Login() {
     const data = new FormData(e.target);
 
     const email = data.get("email");
+    const password = data.get("password");
     try {
-      await auth.login(email);
+      await auth.login(email, password);
       setLoggedIn(true);
     } catch (e: Error) {
       setErr(e);
@@ -31,7 +32,9 @@ export default function Login() {
     <div>
       <form onSubmit={login}>
         <label htmlFor="email">Email</label>
-        <input name="email" />
+        <input name="email" type="email"/>
+        <label htmlFor="password">Password</label>
+        <input name="password" type="password" />
         <button type="submit">Login</button>
       </form>
 

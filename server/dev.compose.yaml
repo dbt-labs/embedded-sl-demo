@@ -9,6 +9,8 @@ services:
       - "8080:80"
       - "5678:5678"
     env_file: .env
+    environment:
+      CORS_ALLOW_ORIGINS: '["http://localhost:8080","http://localhost:5173"]'
     volumes:
       - type: bind
         source: src/

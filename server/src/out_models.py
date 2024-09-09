@@ -72,3 +72,4 @@ class User(BaseModel):
     id: int
     name: str
     store_location_name: str
+    email: str

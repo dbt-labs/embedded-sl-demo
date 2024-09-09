@@ -1,10 +1,14 @@
+import base64
 import datetime as dt
+import json
+import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Annotated
 
 from dbtsl.asyncio import AsyncSemanticLayerClient
 from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 
 import src.out_models as out
 from src.db import db
@@ -25,7 +29,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         yield
 
 
-AUTH_PREFIX = "Bearer "
+BEARER_PREFIX = "Bearer "
 
 
 def auth(authorization: Annotated[str | None, Header()]) -> AuthContext:
@@ -41,10 +45,10 @@ def auth(authorization: Annotated[str | None, Header()]) -> AuthContext:
     if authorization is None:
         raise unauthorized
 
-    if not authorization.startswith(AUTH_PREFIX):
+    if not authorization.startswith(BEARER_PREFIX):
         raise unauthorized
 
-    token = authorization[len(AUTH_PREFIX) :]
+    token = authorization[len(BEARER_PREFIX) :]
 
     try:
         user_id = int(token)
@@ -60,8 +64,43 @@ def auth(authorization: Annotated[str | None, Header()]) -> AuthContext:
 
 AuthDependency = Annotated[AuthContext, Depends(auth)]
 
-
 app = FastAPI(lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=json.loads(os.environ["CORS_ALLOW_ORIGINS"]),
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+BASIC_PREFIX = "Basic "
+
+
+@app.post("/auth", response_model=out.User)
+async def login(authorization: Annotated[str | None, Header()]) -> StoreEmployee:
+    """Get an existing user if username and password match."""
+    unauthorized = HTTPException(status_code=401)
+    if authorization is None:
+        raise unauthorized
+
+    if not authorization.startswith(BASIC_PREFIX):
+        raise unauthorized
+
+    encoded_identity = authorization[len(BASIC_PREFIX) :]
+
+    try:
+        identity_str = base64.b64decode(encoded_identity).decode("utf-8")
+        email, password = identity_str.split(":")
+    except ValueError:
+        raise HTTPException(status_code=400)
+
+    user = db.get_user_by_email_and_password(email, password)
+    if user is None:
+        raise unauthorized
+
+    return user
 
 
 @app.get("/users/me", response_model=out.User)

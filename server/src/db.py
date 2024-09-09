@@ -16,6 +16,14 @@ class Database:
         """Get a user from the database by id."""
         return self._users.get(id, None)
 
+    def get_user_by_email_and_password(self, email: str, password: str) -> StoreEmployee | None:
+        """Get a user from the database by their login credentials."""
+        for user in self._users.values():
+            if user.email == email and user.password == password:
+                return user
+
+        return None
+
 
 db = Database()
 db.insert_user(
@@ -23,6 +31,8 @@ db.insert_user(
         id=0,
         name="Alice",
         store_location_name="Los Angeles",
+        email="alice@jaffle.shop",
+        password="alice",
     )
 )
 db.insert_user(
@@ -30,6 +40,8 @@ db.insert_user(
         id=1,
         name="Diego",
         store_location_name="San Francisco",
+        email="diego@jaffle.shop",
+        password="diego",
     )
 )
 db.insert_user(
@@ -37,6 +49,8 @@ db.insert_user(
         id=2,
         name="Devon",
         store_location_name="San Francisco",
+        email="devon@jaffle.shop",
+        password="devon",
     )
 )
 db.insert_user(
@@ -44,5 +58,7 @@ db.insert_user(
         id=3,
         name="Will",
         store_location_name="Chicago",
+        email="will@jaffle.shop",
+        password="devon",
     )
 )

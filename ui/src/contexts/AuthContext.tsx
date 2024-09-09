@@ -42,7 +42,7 @@ const reducer = (state: State, action: Action): State =>
   handlers[action.type] ? handlers[action.type](state, action) : state;
 
 interface AuthContextValue extends State {
-  login: (email: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue>({
@@ -54,8 +54,8 @@ const AuthContext = createContext<AuthContextValue>({
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const login = async (email: string): Promise<void> => {
-    const user = await authClient.login(email);
+  const login = async (email: string, password: string): Promise<void> => {
+    const user = await authClient.login(email, password);
     dispatch({
       type: "LOGIN",
       payload: {
