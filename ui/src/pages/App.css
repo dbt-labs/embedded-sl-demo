@@ -1,0 +1,11 @@
+div.wrapper {
+  display: flex;
+  height: 100vh;
+}
+
+main {
+  overflow-y: auto;
+  flex: 50 0 auto;
+
+  padding: 20px;
+}

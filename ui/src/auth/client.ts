@@ -1,6 +1,6 @@
-import { User } from "./types.ts";
+import { AuthError, User } from "./types.ts";
 
-import HTTPClient from "../shared/http.ts";
+import HTTPClient, { HTTPError } from "../shared/http.ts";
 
 
 export class AuthClient {
@@ -14,15 +14,21 @@ export class AuthClient {
   async login(email: string, password: string): User {
     const encodedIdentity = window.btoa(`${email}:${password}`)
 
-    const user: User = await this._http.request({
-      method: "POST",
-      route: "/",
-      headers: {
-        "Authorization": `Basic ${encodedIdentity}`
+    try {
+      return await this._http.request({
+        method: "POST",
+        route: "/",
+        headers: {
+          "Authorization": `Basic ${encodedIdentity}`
+        }
+      })
+    }
+    catch(err) {
+      if (err instanceof HTTPError && (err.statusCode == 401 || err.statusCode == 403)) {
+        throw new AuthError("Invalid username or password.")
       }
-    })
-
-    return user;
+      throw err;
+    }
   }
 }
 

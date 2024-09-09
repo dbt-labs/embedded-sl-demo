@@ -13,6 +13,33 @@ export interface HTTPClientConfig {
   authToken?: string,
 }
 
+export const HTTP_CODE_NAMES: Record<number, string> = {
+  200: "OK",
+  201: "Created",
+  400: "Bad request",
+  401: "Unauthorized",
+  403: "Forbidden",
+  404: "Not found",
+  500: "Internal server error",
+}
+
+export class HTTPError extends Error {
+  constructor(statusCode: number, message?: string = null) {
+    if (!message) {
+      message = 
+        statusCode in HTTP_CODE_NAMES ?
+          HTTP_CODE_NAMES[statusCode] :
+          statusCode.toString()
+    }
+    super(message);
+
+    this.statusCode = statusCode;
+  }
+
+  toString(): string {
+  }
+}
+
 export class HTTPClient {
   constructor(cfg: HTTPClientConfig) {
     this.serverBasePath = cfg.serverBasePath;
@@ -44,7 +71,7 @@ export class HTTPClient {
     const response = await fetch(url, config);
 
     if (!response.ok) {
-      throw new Error(`Response status: ${response.status}`);
+      throw new HTTPError(response.status);
     }
 
     const contentType = response.headers.get("content-type");

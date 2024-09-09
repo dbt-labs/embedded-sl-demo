@@ -18,21 +18,34 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  --color: #ffffff;
-  --bg-color: #000000;
+  /* https://coolors.co/palette/fffcf2-ccc5b9-403d39-252422 */
+  --dark-strong: #252422;
+  --dark-weak: #402d39;
+  --light-weak: #ccc5b9;
+  --light-strong: #fffcf2;
+  --error: #f05d5e;
+
+  --line-height: 1.5em;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    --bg-color: #ffffff;
-  }
+@media (prefers-color-scheme: dark) {
+  /* TODO: dark mode */
 }
 
 body {
-  color: var(--color);
-  background-color: var(--bg-color);
+  color: var(--dark-strong);
+  background-color: var(--light-strong);
 
   margin: 0;
 
-  min-height: 100vh;
+  line-height: var(--line-height);
+
+  overflow: hidden;
+}
+
+a {
+  text-decoration: underline;
+  &:hover {
+    cursor: pointer;
+  }
 }

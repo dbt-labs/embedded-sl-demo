@@ -1,6 +1,7 @@
 import { FormEvent, useState } from "react";
 import { Navigate } from "react-router-dom";
 
+import "./Login.css";
 import useAuth from "../auth/hook.ts";
 
 export default function Login() {
@@ -29,16 +30,25 @@ export default function Login() {
   }
 
   return (
-    <div>
+    <div className="login">
+      <p className="error">
+        {err ? err.message : ""}
+      </p>
+
       <form onSubmit={login}>
-        <label htmlFor="email">Email</label>
-        <input name="email" type="email"/>
-        <label htmlFor="password">Password</label>
-        <input name="password" type="password" />
-        <button type="submit">Login</button>
+        <div className="form-field">
+          <label htmlFor="email">Email</label>
+          <input name="email" type="email"/>
+        </div>
+        <div className="form-field">
+          <label htmlFor="password">Password</label>
+          <input name="password" type="password" />
+        </div>
+        <div className="form-field">
+          <button type="submit">Login</button>
+        </div>
       </form>
 
-      {err && <p>{err.message}</p>}
     </div>
   );
 }
