@@ -1,7 +1,7 @@
 import { Navigate } from "react-router-dom";
 
-// import Navbar from "../components/navbar/Navbar.tsx";
-import useAuth from "../hooks/auth.ts";
+import Navbar from "../components/navbar/Navbar.tsx";
+import useAuth from "../auth/hook.ts";
 
 export default function App() {
   const auth = useAuth();
@@ -10,5 +10,7 @@ export default function App() {
     return <Navigate to="/login" />;
   }
 
-  return <div>APP</div>;
+  return (
+      <Navbar />
+  );
 }

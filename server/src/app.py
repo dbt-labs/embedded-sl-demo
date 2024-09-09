@@ -109,7 +109,7 @@ async def get_me(auth: AuthDependency) -> StoreEmployee:
     return auth.employee
 
 
-@app.get("/orders/daily")
+@app.get("/metrics/daily-orders")
 async def get_orders(auth: AuthDependency) -> out.MetricsGroupedBy[dt.date, float]:
     """Get a buffer with daily orders for the current shop."""
     metric = "order_total"

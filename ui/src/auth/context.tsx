@@ -1,7 +1,7 @@
 import { createContext, useReducer } from "react";
 
-import authClient from "../clients/auth.ts";
-import { User } from "../types/auth.ts";
+import authClient from "./client.ts";
+import { User } from "./types.ts";
 
 interface State {
   user: User | null;

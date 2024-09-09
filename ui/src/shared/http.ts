@@ -1,21 +1,27 @@
-import { User } from "../types/auth.ts";
+export type HTTPMethod = "GET" | "POST";
 
-type HTTPMethod = "GET" | "POST";
-
-type ReqParams = {
+export type ReqParams = {
   method: HTTPMethod,
   route: string,
   headers: Record<string, string>,
   payload?: Record<string, unknown>,
 }
 
-export class AuthClient {
-  constructor(serverBasePath: string) {
-    this.serverBasePath = serverBasePath;
+export interface HTTPClientConfig {
+  serverBasePath: string,
+  baseRoute?: string,
+  authToken?: string,
+}
+
+export class HTTPClient {
+  constructor(cfg: HTTPClientConfig) {
+    this.serverBasePath = cfg.serverBasePath;
+    this.baseRoute = cfg.baseRoute || "";
+    this.authToken = cfg.authToken;
   }
 
-  async _req(p: ReqParams): unknown {
-    const url = this.serverBasePath + p.route;
+  async request(p: ReqParams): unknown {
+    const url = this.serverBasePath + this.baseRoute + p.route;
     const config ={
       method: p.method,
       headers: {
@@ -31,6 +37,10 @@ export class AuthClient {
       config.headers["Content-Type"] = "application/json";
     }
 
+    if (this.authToken) {
+      config.headers["Authorization"] = `Bearer ${this.authToken}`;
+    }
+
     const response = await fetch(url, config);
 
     if (!response.ok) {
@@ -44,22 +54,6 @@ export class AuthClient {
 
     return await response.json();
   }
-
-  async login(email: string, password: string): User {
-    const encodedIdentity = window.btoa(`${email}:${password}`)
-
-    const user: User = await this._req({
-      method: "POST",
-      route: "/auth",
-      headers: {
-        "Authorization": `Basic ${encodedIdentity}`
-      }
-    })
-
-    return user;
-  }
 }
 
-const client = new AuthClient(import.meta.env.VITE_SERVER_BASE_PATH);
-
-export default client;
+export default HTTPClient;
