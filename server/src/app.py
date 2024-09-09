@@ -82,10 +82,4 @@ async def get_orders(auth: AuthDependency) -> out.MetricsGroupedBy[dt.date, floa
         group_by=[group_by],
     )
 
-    metrics_list: list[float] = table[metric.upper()].to_pylist()
-    group_by_list: list[dt.date] = table[group_by.upper()].to_pylist()
-
-    return out.MetricsGroupedBy[dt.date, float](
-        metrics=[out.Series[float](name=metric, data=metrics_list)],
-        group_by=out.Series[dt.date](name=group_by, data=group_by_list),
-    )
+    return out.MetricsGroupedBy[dt.date, float].from_arrow(group_by, [metric], table)

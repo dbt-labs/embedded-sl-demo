@@ -1,6 +1,10 @@
+from __future__ import annotations
+
 import datetime as dt
 from enum import Enum
 from typing import get_args as get_type_args
+
+import pyarrow as pa
 
 from src.models import BaseModel
 
@@ -17,7 +21,7 @@ class SeriesType(str, Enum):
     DATETIME = "datetime"
 
     @classmethod
-    def from_py_type(cls, pt: type[ValueType]) -> "SeriesType":
+    def from_py_type(cls, pt: type[ValueType]) -> SeriesType:
         """Get a SeriesType from a python type."""
         pt_map = {
             int: SeriesType.INT,
@@ -46,6 +50,20 @@ class MetricsGroupedBy[TGroupBy: ValueType, TMetrics: ValueType](BaseModel):
 
     metrics: list[Series[TMetrics]]
     group_by: Series[TGroupBy]
+
+    @classmethod
+    def from_arrow(cls, group_by: str, metrics: list[str], table: pa.Table) -> MetricsGroupedBy[TGroupBy, TMetrics]:
+        """Construct a MetricsGroupedBy from a PyArrow table."""
+        metrics_data_list: list[list[TMetrics]] = [table[metric.upper()].to_pylist() for metric in metrics]
+        group_by_data: list[TGroupBy] = table[group_by.upper()].to_pylist()
+
+        return MetricsGroupedBy[TGroupBy, TMetrics](
+            metrics=[
+                Series[TMetrics](name=metric_name, data=metric_data)
+                for metric_name, metric_data in zip(metrics, metrics_data_list)
+            ],
+            group_by=Series[TGroupBy](name=group_by, data=group_by_data),
+        )
 
 
 class User(BaseModel):
