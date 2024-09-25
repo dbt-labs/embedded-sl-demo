@@ -9,3 +9,7 @@ main {
 
   padding: 20px;
 }
+
+.chart {
+  min-height: 100%;
+}

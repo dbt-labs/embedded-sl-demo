@@ -31,14 +31,12 @@ export default function Login() {
 
   return (
     <div className="login">
-      <p className="error">
-        {err ? err.message : ""}
-      </p>
+      <p className="error">{err ? err.message : ""}</p>
 
       <form onSubmit={login}>
         <div className="form-field">
           <label htmlFor="email">Email</label>
-          <input name="email" type="email"/>
+          <input name="email" type="email" />
         </div>
         <div className="form-field">
           <label htmlFor="password">Password</label>
@@ -48,7 +46,6 @@ export default function Login() {
           <button type="submit">Login</button>
         </div>
       </form>
-
     </div>
   );
 }

@@ -1,4 +1,4 @@
-export class AuthError extends Error {};
+export class AuthError extends Error {}
 
 export interface User {
   id: int;

@@ -54,8 +54,8 @@ class MetricsGroupedBy[TGroupBy: ValueType, TMetrics: ValueType](BaseModel):
     @classmethod
     def from_arrow(cls, group_by: str, metrics: list[str], table: pa.Table) -> MetricsGroupedBy[TGroupBy, TMetrics]:
         """Construct a MetricsGroupedBy from a PyArrow table."""
-        metrics_data_list: list[list[TMetrics]] = [table[metric.upper()].to_pylist() for metric in metrics]
-        group_by_data: list[TGroupBy] = table[group_by.upper()].to_pylist()
+        metrics_data_list: list[list[TMetrics]] = [table[metric.upper()].to_pylist() for metric in metrics]  # type: ignore
+        group_by_data: list[TGroupBy] = table[group_by.upper()].to_pylist()  # type: ignore
 
         return MetricsGroupedBy[TGroupBy, TMetrics](
             metrics=[
@@ -64,6 +64,26 @@ class MetricsGroupedBy[TGroupBy: ValueType, TMetrics: ValueType](BaseModel):
             ],
             group_by=Series[TGroupBy](name=group_by, data=group_by_data),
         )
+
+
+class SemanticLayerQuery(BaseModel):
+    """Represents a query that is sent to the SL."""
+
+    metrics: list[str]
+    group_by: list[str]
+    where: list[str]
+    order_by: list[str]
+
+
+class MetricOutput[TGroupBy: ValueType, TMetrics: ValueType](BaseModel):
+    """A metric that will be served to the clients."""
+
+    id: str
+    title: str
+    sql: str
+    sl_query: SemanticLayerQuery
+    # NOTE: pydantic validation fails if we propagate the generics here...
+    data: MetricsGroupedBy  # type: ignore
 
 
 class User(BaseModel):

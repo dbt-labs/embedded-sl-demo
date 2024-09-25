@@ -1,0 +1,6 @@
+div.display {
+  background-color: var(--light-strong);
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid var(--dark-weak);
+}

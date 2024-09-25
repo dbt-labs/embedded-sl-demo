@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import datetime as dt
 import json
@@ -7,7 +8,7 @@ from contextlib import asynccontextmanager
 from typing import Annotated
 
 from dbtsl.asyncio import AsyncSemanticLayerClient
-from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 import src.out_models as out
@@ -109,16 +110,55 @@ async def get_me(auth: AuthDependency) -> StoreEmployee:
     return auth.employee
 
 
+# TODO: validate dates. This regex accepts 2000-90-90
+DatePathParam = Annotated[str | None, Query(regex="^[0-9]{4}-[0-9]{2}-[0-9]{2}$")]
+
+
 @app.get("/metrics/daily-orders")
-async def get_orders(auth: AuthDependency) -> out.MetricsGroupedBy[dt.date, float]:
+async def get_orders(
+    auth: AuthDependency,
+    start: DatePathParam = None,
+    end: DatePathParam = None,
+) -> out.MetricOutput[dt.date, float]:
     """Get a buffer with daily orders for the current shop."""
     metric = "order_total"
     group_by = "metric_time__day"
 
-    table = await sl.query(
+    where = [f"{{{{ Dimension('location__location_name') }}}} = '{auth.employee.store_location_name}'"]
+
+    if start is not None:
+        where.append(f"{{{{ TimeDimension('metric_time', 'day') }}}} >= '{start}'")
+
+    if end is not None:
+        where.append(f"{{{{ TimeDimension('metric_time', 'day') }}}} <= '{end}'")
+
+    query_task = sl.query(
         metrics=[metric],
-        where=[f"{{{{ Dimension('location__location_name') }}}} = '{auth.employee.store_location_name}'"],
         group_by=[group_by],
+        where=where,
+        order_by=[group_by],
+    )
+    sql_task = sl.compile_sql(
+        metrics=[metric],
+        group_by=[group_by],
+        where=where,
+        # TODO: fix SDK bug with order_by
+        # order_by=[group_by],
     )
 
-    return out.MetricsGroupedBy[dt.date, float].from_arrow(group_by, [metric], table)
+    table, sql = await asyncio.gather(query_task, sql_task)
+
+    out_data = out.MetricsGroupedBy[dt.date, float].from_arrow(group_by, [metric], table)
+
+    return out.MetricOutput[dt.date, float](
+        id="daily-orders",
+        title=f"Daily orders in {auth.employee.store_location_name}",
+        sql=sql,
+        sl_query=out.SemanticLayerQuery(
+            metrics=[metric],
+            group_by=[group_by],
+            where=where,
+            order_by=[group_by],
+        ),
+        data=out_data,
+    )
