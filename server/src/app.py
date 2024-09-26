@@ -7,6 +7,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Annotated
 
+import pyarrow as pa
 from dbtsl.asyncio import AsyncSemanticLayerClient
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -124,6 +125,7 @@ async def get_orders(
     metric = "order_total"
     group_by = "metric_time__day"
 
+    # NOTE: do SQL sanitization
     where = [f"{{{{ Dimension('location__location_name') }}}} = '{auth.employee.store_location_name}'"]
 
     if start is not None:
@@ -147,6 +149,17 @@ async def get_orders(
     )
 
     table, sql = await asyncio.gather(query_task, sql_task)
+
+    # cast table from datetime to date
+    # TODO: have to use type ignores here because pyarrow-stubs isn't typed correctly and pyright doesn't like it
+    # See: https://github.com/zen-xu/pyarrow-stubs/issues
+    schema = pa.schema(  # type: ignore
+        [
+            pa.field(group_by.upper(), pa.date32()),  # type: ignore
+            pa.field(metric.upper(), pa.float64()),  # type: ignore
+        ]
+    )
+    table = table.cast(schema)
 
     out_data = out.MetricsGroupedBy[dt.date, float].from_arrow(group_by, [metric], table)
 

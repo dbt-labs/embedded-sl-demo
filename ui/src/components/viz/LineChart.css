@@ -1,0 +1,30 @@
+div.line-chart {
+  & div.code {
+    background-color: var(--dark-strong);
+    color: var(--light-strong);
+    padding: 10px;
+    border-radius: 5px;
+  }
+
+  & div.sl-query {
+    & ul {
+      margin: 0;
+      padding-left: 10px;
+
+      & li {
+        list-style: none;
+        &::before {
+          content: "- ";
+        }
+      }
+    }
+  }
+
+  & span.title {
+    font-weight: bold;
+  }
+
+  & div.block {
+    margin-bottom: 10px;
+  }
+}

@@ -49,3 +49,8 @@ a {
     cursor: pointer;
   }
 }
+
+div.code {
+  font-family: "Fira Code";
+  white-space: pre-wrap;
+}
