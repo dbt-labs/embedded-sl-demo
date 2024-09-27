@@ -17,13 +17,14 @@ export default function LoggedInApp() {
   const api = useAPI();
 
   const [user, setUser] = useState<User | null>(null);
+
   useEffect(() => {
     const fetchUser = async () => {
       const user = await api.users.me();
       setUser(user);
     };
     void fetchUser();
-  }, [api]);
+  }, [api.sessionId, api.users]);
 
   // TODO: move query away from here
   const end = new Date();

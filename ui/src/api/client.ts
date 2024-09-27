@@ -45,10 +45,15 @@ export class UsersClient extends PathClient {
 }
 
 export class APIClient {
+  public readonly sessionId: string;
+
   public readonly metrics: MetricsClient;
   public readonly users: UsersClient;
 
   constructor(serverBasePath: string, authToken: string) {
+    // TODO: hash token to avoid leaking
+    this.sessionId = authToken;
+
     this.metrics = new MetricsClient(serverBasePath, authToken);
     this.users = new UsersClient(serverBasePath, authToken);
   }
