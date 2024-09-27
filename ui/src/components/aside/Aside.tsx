@@ -1,15 +1,19 @@
+import { useContext } from "react";
+
 import "./Aside.css";
 
 import useAuth from "../../auth/hook.ts";
+import { UserContext } from "../../state/user.ts";
 
 export default function Navbar() {
   const auth = useAuth();
+  const user = useContext(UserContext);
 
   return (
     <aside>
       <ul>
-        <li>Hi, {auth.user.name}</li>
-        <li>{auth.user.storeLocationName}</li>
+        <li>Hi, {user.name}</li>
+        <li>{user.storeLocationName}</li>
       </ul>
       <ul>
         <li>

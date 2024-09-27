@@ -1,8 +1,6 @@
-export class AuthError extends Error {}
-
-export interface User {
-  id: int;
-  name: string;
-  email: string;
-  storeLocationName: string;
+export interface AuthToken {
+  token: string;
+  expires: Date;
 }
+
+export class AuthError extends Error {}

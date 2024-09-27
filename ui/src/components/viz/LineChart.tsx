@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, FC } from "react";
 
 import ReactECharts from "echarts-for-react";
 
-import { MetricResult } from "../../metrics/types.ts";
+import { MetricResult, MetricsGroupedBy } from "../../api/types/metrics.ts";
 import "./LineChart.css";
 
 import Modal from "../Modal.tsx";
@@ -10,11 +10,13 @@ import Modal from "../Modal.tsx";
 import infoIconUrl from "../../assets/info-circle.svg";
 
 export interface Props<TMetrics, TGroupBy> {
-  result: MetricResult<TMetrics, TGroupBy>;
+  result: MetricResult<MetricsGroupedBy<TMetrics, TGroupBy>>;
 }
 
-export default function LineChart(props: Props): FC<Props<TMetrics, TGroupBy>> {
-  const [showModal, setShowModal] = useState<bool>(false);
+export default function LineChart<TMetrics, TGroupBy>(
+  props: Props<TMetrics, TGroupBy>,
+): FC<Props<TMetrics, TGroupBy>> {
+  const [showModal, setShowModal] = useState<boolean>(false);
 
   const option = {
     title: {
@@ -111,11 +113,11 @@ export default function LineChart(props: Props): FC<Props<TMetrics, TGroupBy>> {
 
   const getQueryStringList = (title: string, prop: string) => {
     return (
-      <div>
+      <div key={title}>
         <b>{title}</b>
         <ul>
           {props.result.slQuery[prop].map((v) => (
-            <li>{v}</li>
+            <li key={v}>{v}</li>
           ))}
         </ul>
       </div>
@@ -124,7 +126,7 @@ export default function LineChart(props: Props): FC<Props<TMetrics, TGroupBy>> {
 
   const modal = (
     <Modal title="Query information" onClose={() => setShowModal(false)}>
-      <div class="block">
+      <div className="block">
         <span className="title">Semantic Layer Query</span>
         <div className="code sl-query">
           {getQueryStringList("Metrics:", "metrics")}
@@ -133,7 +135,7 @@ export default function LineChart(props: Props): FC<Props<TMetrics, TGroupBy>> {
           {getQueryStringList("Order by:", "orderBy")}
         </div>
       </div>
-      <div class="block">
+      <div className="block">
         <span className="title">Generated SQL</span>
         <div className="code">{props.result.sql}</div>
       </div>
@@ -141,7 +143,7 @@ export default function LineChart(props: Props): FC<Props<TMetrics, TGroupBy>> {
   );
 
   return (
-    <div class="line-chart">
+    <div className="line-chart">
       {showModal && modal}
       <ReactECharts option={option} className="chart"></ReactECharts>
     </div>

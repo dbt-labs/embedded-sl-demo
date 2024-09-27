@@ -3,8 +3,9 @@ export type HTTPMethod = "GET" | "POST";
 export type ReqParams = {
   method: HTTPMethod;
   route: string;
-  headers: Record<string, string>;
-  payload?: Record<string, unknown>;
+  headers?: Record<string, string>;
+  form?: Record<string, string>;
+  json?: Record<string, unknown>;
   params?: Record<string, string>;
 };
 
@@ -25,7 +26,9 @@ export const HTTP_CODE_NAMES: Record<number, string> = {
 };
 
 export class HTTPError extends Error {
-  constructor(statusCode: number, message?: string = null) {
+  public readonly statusCode: number;
+
+  constructor(statusCode: number, message: string | null = null) {
     if (!message) {
       message =
         statusCode in HTTP_CODE_NAMES
@@ -36,20 +39,22 @@ export class HTTPError extends Error {
 
     this.statusCode = statusCode;
   }
-
-  toString(): string {}
 }
 
 export class HTTPClient {
+  public readonly serverBasePath: string;
+  public readonly baseRoute: string;
+  public readonly authToken?: string;
+
   constructor(cfg: HTTPClientConfig) {
     this.serverBasePath = cfg.serverBasePath;
     this.baseRoute = cfg.baseRoute || "";
     this.authToken = cfg.authToken;
   }
 
-  async request(p: ReqParams): unknown {
+  async request(p: ReqParams): Promise<unknown> {
     let url = this.serverBasePath + this.baseRoute + p.route;
-    const config = {
+    const config: RequestInit = {
       method: p.method,
       headers: {
         ...p.headers,
@@ -61,12 +66,26 @@ export class HTTPClient {
       url += "?" + params.toString();
     }
 
-    if (p.payload) {
+    if (p.json) {
+      if (p.method == "GET") {
+        throw new Error("Cannot specify JSON for GET request");
+      }
+
+      config.body = JSON.stringify(p.json);
+      config.headers["Content-Type"] = "application/json";
+    }
+
+    if (p.form) {
       if (p.method == "GET") {
         throw new Error("Cannot specify payload for GET request");
       }
-      config.body = JSON.stringify(p.payload);
-      config.headers["Content-Type"] = "application/json";
+
+      const encoded = new URLSearchParams();
+      for (const [key, val] of Object.entries(p.form)) {
+        encoded.append(key, val);
+      }
+      config.body = encoded.toString();
+      config.headers["Content-Type"] = "application/x-www-form-urlencoded";
     }
 
     if (this.authToken) {
@@ -76,7 +95,8 @@ export class HTTPClient {
     const response = await fetch(url, config);
 
     if (!response.ok) {
-      throw new HTTPError(response.status);
+      const body = await response.json();
+      throw new HTTPError(response.status, body.detail);
     }
 
     const contentType = response.headers.get("content-type");

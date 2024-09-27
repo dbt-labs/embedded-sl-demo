@@ -1,8 +1,16 @@
-import { AuthError, User } from "./types.ts";
+import { AuthError, AuthToken } from "./types.ts";
 
 import HTTPClient, { HTTPError } from "../shared/http.ts";
 
+interface OAuthResponse {
+  grant_type: string;
+  access_token: string;
+  expires_in: number;
+}
+
 export class AuthClient {
+  private _http: HTTPClient;
+
   constructor(serverBasePath: string) {
     this._http = new HTTPClient({
       serverBasePath,
@@ -10,23 +18,32 @@ export class AuthClient {
     });
   }
 
-  async login(email: string, password: string): User {
-    const encodedIdentity = window.btoa(`${email}:${password}`);
-
+  async login(email: string, password: string): Promise<AuthToken> {
     try {
-      return await this._http.request({
+      const response = (await this._http.request({
         method: "POST",
-        route: "/",
-        headers: {
-          Authorization: `Basic ${encodedIdentity}`,
+        route: "/token",
+        form: {
+          grant_type: "password",
+          username: email,
+          password: password,
         },
-      });
+      })) as OAuthResponse;
+
+      const expiresAtSeconds =
+        Math.floor(new Date().getTime()) + response.expires_in;
+      const expires = new Date(expiresAtSeconds);
+
+      return {
+        token: response.access_token,
+        expires: expires,
+      };
     } catch (err) {
       if (
         err instanceof HTTPError &&
         (err.statusCode == 401 || err.statusCode == 403)
       ) {
-        throw new AuthError("Invalid username or password.");
+        throw new AuthError(err.message);
       }
       throw err;
     }

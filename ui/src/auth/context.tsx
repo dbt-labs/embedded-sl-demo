@@ -1,16 +1,16 @@
-import { createContext, useReducer } from "react";
+import { createContext, useReducer, FC, PropsWithChildren } from "react";
 
 import authClient from "./client.ts";
-import { User } from "./types.ts";
+import { AuthToken } from "./types.ts";
 
 interface State {
-  user: User | null;
+  token: AuthToken | null;
 }
 
 type LoginAction = {
   type: "LOGIN";
   payload: {
-    user: User;
+    token: AuthToken;
   };
 };
 
@@ -21,19 +21,20 @@ type LogoutAction = {
 type Action = LoginAction | LogoutAction;
 
 const initialState: State = {
-  user: null,
+  token: null,
 };
 Object.freeze(initialState);
 
 const handlers: Record<string, (state: State, action: Action) => State> = {
-  LOGIN: (state: State, action: Action): State => {
+  // @ts-expect-error: 2322
+  LOGIN: (_: State, action: LoginAction): State => {
     return {
-      user: action.payload.user,
+      token: action.payload.token,
     };
   },
   LOGOUT: (): State => {
     return {
-      user: null,
+      token: null,
     };
   },
 };
@@ -43,6 +44,7 @@ const reducer = (state: State, action: Action): State =>
 
 interface AuthContextValue extends State {
   login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue>({
@@ -51,15 +53,15 @@ const AuthContext = createContext<AuthContextValue>({
   logout: () => Promise.resolve(),
 });
 
-export const AuthProvider = ({ children }) => {
+export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   const login = async (email: string, password: string): Promise<void> => {
-    const user = await authClient.login(email, password);
+    const token = await authClient.login(email, password);
     dispatch({
       type: "LOGIN",
       payload: {
-        user,
+        token,
       },
     });
   };

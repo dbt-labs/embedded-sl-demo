@@ -1,7 +1,7 @@
 import { useState, useEffect, Component } from "react";
 
-import { Query, MetricResult } from "../metrics/types.ts";
-import useMetrics from "../metrics/hook.ts";
+import { BaseQuery, MetricResult } from "../api/types/metrics.ts";
+import useAPI from "../api/hook.ts";
 
 import "./MetricsDisplay.css";
 
@@ -10,23 +10,25 @@ export interface DisplayProps<TMetric> {
 }
 
 export interface Props<TMetric> {
-  query: Query;
+  query: BaseQuery<TMetric>;
   display: Component<DisplayProps<TMetric>>;
 }
 
 export default function MetricsDisplay<TMetric>(props: Props<TMetric>) {
-  const metrics = useMetrics();
+  const api = useAPI();
 
   const [result, setResult] = useState<MetricResult<TMetric> | null>(null);
 
   useEffect(() => {
     const fetchResult = async () => {
-      const result: MetricResult<TMetric> = await metrics.query(props.query);
+      const result: MetricResult<TMetric> = await api!.metrics.query(
+        props.query,
+      );
       setResult(result);
     };
 
     fetchResult();
-  }, [props.query, metrics]);
+  }, [props.query, api]);
 
   return (
     <div className="display">
