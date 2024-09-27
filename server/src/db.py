@@ -1,22 +1,22 @@
-from src.models import StoreEmployee
+from src.auth.models import User
 
 
 class Database:
     """A fake database with fake data to illustrate the purpose."""
 
     def __init__(self) -> None:  # noqa: D107
-        self._users: dict[int, StoreEmployee] = {}
+        self._users: dict[int, User] = {}
 
-    def insert_user(self, user: StoreEmployee) -> None:
+    def insert_user(self, user: User) -> None:
         """Add a new user to the database."""
         assert user.id not in self._users
         self._users[user.id] = user
 
-    def get_user(self, id: int) -> StoreEmployee | None:
+    def get_user(self, id: int) -> User | None:
         """Get a user from the database by id."""
         return self._users.get(id, None)
 
-    def get_user_by_email_and_password(self, email: str, password: str) -> StoreEmployee | None:
+    def get_user_by_email_and_password(self, email: str, password: str) -> User | None:
         """Get a user from the database by their login credentials."""
         for user in self._users.values():
             if user.email == email and user.password == password:
@@ -27,7 +27,7 @@ class Database:
 
 db = Database()
 db.insert_user(
-    StoreEmployee(
+    User(
         id=0,
         name="Alice",
         store_location_name="Los Angeles",
@@ -36,7 +36,7 @@ db.insert_user(
     )
 )
 db.insert_user(
-    StoreEmployee(
+    User(
         id=1,
         name="Diego",
         store_location_name="San Francisco",
@@ -45,7 +45,7 @@ db.insert_user(
     )
 )
 db.insert_user(
-    StoreEmployee(
+    User(
         id=2,
         name="Devon",
         store_location_name="San Francisco",
@@ -54,7 +54,7 @@ db.insert_user(
     )
 )
 db.insert_user(
-    StoreEmployee(
+    User(
         id=3,
         name="Will",
         store_location_name="Chicago",

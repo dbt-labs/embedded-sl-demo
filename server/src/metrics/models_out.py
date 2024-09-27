@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import datetime as dt
 from enum import Enum
-from typing import Literal
 from typing import get_args as get_type_args
 
 import pyarrow as pa
@@ -76,7 +75,7 @@ class SemanticLayerQuery(BaseModel):
     order_by: list[str]
 
 
-class MetricOutput[TGroupBy: ValueType, TMetrics: ValueType](BaseModel):
+class Metric[TGroupBy: ValueType, TMetrics: ValueType](BaseModel):
     """A metric that will be served to the clients."""
 
     id: str
@@ -85,23 +84,3 @@ class MetricOutput[TGroupBy: ValueType, TMetrics: ValueType](BaseModel):
     sl_query: SemanticLayerQuery
     # NOTE: pydantic validation fails if we propagate the generics here...
     data: MetricsGroupedBy  # type: ignore
-
-
-class OAuthLoginResponse(BaseModel):
-    """Response from /auth."""
-
-    class Config:  # pyright: ignore[reportIncompatibleVariableOverride]  # noqa: D106
-        alias_generator = None
-
-    access_token: str
-    token_type: Literal["bearer"] = "bearer"
-    expires_in: int
-
-
-class User(BaseModel):
-    """A user."""
-
-    id: int
-    name: str
-    store_location_name: str
-    email: str

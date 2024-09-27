@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -9,14 +11,21 @@ class SemanticLayerSettings(BaseSettings):
     token: str
 
 
+class AuthSettings(BaseSettings):
+    """Auth settings."""
+
+    jwt_signing_secret: str
+    jwt_algorithm: Literal["HS256"] = "HS256"
+    jwt_expire_sec: int = 60 * 15
+
+
 class Settings(BaseSettings):
     """Settings for the app."""
 
     model_config = SettingsConfigDict(env_nested_delimiter="__")
 
     sl: SemanticLayerSettings
-
-    auth_signing_secret: str
+    auth: AuthSettings
 
 
 settings = Settings()  # type: ignore
