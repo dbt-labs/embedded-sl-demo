@@ -60,7 +60,10 @@ export class APIClient {
       return null;
     }
 
-    return new APIClient(import.meta.env.VITE_SERVER_BASE_PATH, token.token);
+    return new APIClient(
+      import.meta.env.VITE_SERVER_BASE_PATH as string,
+      token.token,
+    );
   }
 }
 

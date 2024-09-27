@@ -1,4 +1,4 @@
-import { MetricsGroupedByDateQuery } from "./types.ts";
+import { MetricsGroupedByDateQuery } from "./metrics.ts";
 
 export function dailyOrders(start: Date, end: Date): MetricsGroupedByDateQuery {
   return {

@@ -50,6 +50,6 @@ export class AuthClient {
   }
 }
 
-const client = new AuthClient(import.meta.env.VITE_SERVER_BASE_PATH);
+const client = new AuthClient(import.meta.env.VITE_SERVER_BASE_PATH as string);
 
 export default client;

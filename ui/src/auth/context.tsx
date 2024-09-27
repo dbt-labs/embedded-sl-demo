@@ -44,13 +44,13 @@ const reducer = (state: State, action: Action): State =>
 
 interface AuthContextValue extends State {
   login: (email: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
+  logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue>({
   ...initialState,
   login: () => Promise.resolve(),
-  logout: () => Promise.resolve(),
+  logout: () => {},
 });
 
 export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
@@ -66,7 +66,7 @@ export const AuthProvider: FC<PropsWithChildren> = ({ children }) => {
     });
   };
 
-  const logout = async (): Promise<void> => {
+  const logout = (): void => {
     dispatch({
       type: "LOGOUT",
     });

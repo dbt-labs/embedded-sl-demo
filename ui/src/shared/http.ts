@@ -15,6 +15,10 @@ export interface HTTPClientConfig {
   authToken?: string;
 }
 
+interface ErrorResponse {
+  detail: string;
+}
+
 export const HTTP_CODE_NAMES: Record<number, string> = {
   200: "OK",
   201: "Created",
@@ -54,12 +58,17 @@ export class HTTPClient {
 
   async request(p: ReqParams): Promise<unknown> {
     let url = this.serverBasePath + this.baseRoute + p.route;
+    const headers = new Headers();
     const config: RequestInit = {
       method: p.method,
-      headers: {
-        ...p.headers,
-      },
+      headers: headers,
     };
+
+    if (p.headers) {
+      for (const [key, val] of Object.entries(p.headers)) {
+        headers.set(key, val);
+      }
+    }
 
     if (p.params) {
       const params = new URLSearchParams(p.params);
@@ -72,7 +81,7 @@ export class HTTPClient {
       }
 
       config.body = JSON.stringify(p.json);
-      config.headers["Content-Type"] = "application/json";
+      headers.set("Content-Type", "application/json");
     }
 
     if (p.form) {
@@ -85,17 +94,17 @@ export class HTTPClient {
         encoded.append(key, val);
       }
       config.body = encoded.toString();
-      config.headers["Content-Type"] = "application/x-www-form-urlencoded";
+      headers.set("Content-Type", "application/x-www-form-urlencoded");
     }
 
     if (this.authToken) {
-      config.headers["Authorization"] = `Bearer ${this.authToken}`;
+      headers.set("Authorization", `Bearer ${this.authToken}`);
     }
 
     const response = await fetch(url, config);
 
     if (!response.ok) {
-      const body = await response.json();
+      const body: ErrorResponse = (await response.json()) as ErrorResponse;
       throw new HTTPError(response.status, body.detail);
     }
 

@@ -22,7 +22,7 @@ export default function LoggedInApp() {
       const user = await api.users.me();
       setUser(user);
     };
-    fetchUser();
+    void fetchUser();
   }, [api]);
 
   // TODO: move query away from here
@@ -36,7 +36,7 @@ export default function LoggedInApp() {
     <UserContext.Provider value={user}>
       <Aside />
       <main>
-        <MetricsDisplay query={query} display={LineChart}></MetricsDisplay>
+        <MetricsDisplay query={query} display={LineChart} />
       </main>
     </UserContext.Provider>
   ) : (

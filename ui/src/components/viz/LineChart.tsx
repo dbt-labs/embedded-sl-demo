@@ -1,21 +1,31 @@
-import { useState, FC } from "react";
+import { useState } from "react";
 
 import ReactECharts from "echarts-for-react";
 
-import { MetricResult, MetricsGroupedBy } from "../../api/types/metrics.ts";
+import {
+  FloatSeries,
+  DateSeries,
+  MetricResult,
+  MetricsGroupedBy,
+  SemanticLayerQuery,
+} from "../../api/types/metrics.ts";
 import "./LineChart.css";
 
 import Modal from "../Modal.tsx";
 
 import infoIconUrl from "../../assets/info-circle.svg";
 
-export interface Props<TMetrics, TGroupBy> {
+export interface Props<
+  TMetrics extends FloatSeries,
+  TGroupBy extends DateSeries,
+> {
   result: MetricResult<MetricsGroupedBy<TMetrics, TGroupBy>>;
 }
 
-export default function LineChart<TMetrics, TGroupBy>(
-  props: Props<TMetrics, TGroupBy>,
-): FC<Props<TMetrics, TGroupBy>> {
+export default function LineChart<
+  TMetrics extends FloatSeries,
+  TGroupBy extends DateSeries,
+>(props: Props<TMetrics, TGroupBy>) {
   const [showModal, setShowModal] = useState<boolean>(false);
 
   const option = {
@@ -111,7 +121,10 @@ export default function LineChart<TMetrics, TGroupBy>(
     })),
   };
 
-  const getQueryStringList = (title: string, prop: string) => {
+  const getQueryStringList = (
+    title: string,
+    prop: keyof SemanticLayerQuery,
+  ) => {
     return (
       <div key={title}>
         <b>{title}</b>

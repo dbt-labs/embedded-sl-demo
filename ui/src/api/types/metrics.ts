@@ -27,8 +27,8 @@ export interface DatetimeSeries extends Series<string> {
 }
 
 export interface MetricsGroupedBy<
-  TMetrics extends Series,
-  TGroupBy extends Series,
+  TMetrics extends Series<number | string>,
+  TGroupBy extends Series<number | string>,
 > {
   metrics: TMetrics[];
   groupBy: TGroupBy;
@@ -41,7 +41,8 @@ export interface BaseQuery<TOutput> {
   params: Record<string, string>;
 }
 
-export interface MetricsGroupedByDateQuery extends BaseQuery<MetricsGroupedBy> {
+export interface MetricsGroupedByDateQuery
+  extends BaseQuery<MetricsGroupedBy<FloatSeries, DateSeries>> {
   params: {
     start?: string;
     end?: string;

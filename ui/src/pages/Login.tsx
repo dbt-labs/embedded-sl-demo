@@ -10,19 +10,18 @@ export default function Login() {
   const [isLoggedIn, setLoggedIn] = useState<boolean>(false);
   const [err, setErr] = useState<Error | null>(null);
 
-  const login = async (e: FormEvent) => {
+  const login = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const data = new FormData(e.target);
+    const data = new FormData(e.target as HTMLFormElement);
 
-    const email = data.get("email");
-    const password = data.get("password");
-    try {
-      await auth.login(email, password);
-      setLoggedIn(true);
-    } catch (e: Error) {
-      setErr(e);
-    }
+    const email = data.get("email") as string;
+    const password = data.get("password") as string;
+
+    auth
+      .login(email, password)
+      .then(() => setLoggedIn(true))
+      .catch((e) => setErr(e as Error));
   };
 
   if (isLoggedIn) {

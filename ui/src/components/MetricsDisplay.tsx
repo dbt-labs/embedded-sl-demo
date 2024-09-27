@@ -1,4 +1,4 @@
-import { useState, useEffect, Component } from "react";
+import { useState, useEffect, FC } from "react";
 
 import { BaseQuery, MetricResult } from "../api/types/metrics.ts";
 import useAPI from "../api/hook.ts";
@@ -11,7 +11,7 @@ export interface DisplayProps<TMetric> {
 
 export interface Props<TMetric> {
   query: BaseQuery<TMetric>;
-  display: Component<DisplayProps<TMetric>>;
+  display: FC<DisplayProps<TMetric>>;
 }
 
 export default function MetricsDisplay<TMetric>(props: Props<TMetric>) {
@@ -21,13 +21,13 @@ export default function MetricsDisplay<TMetric>(props: Props<TMetric>) {
 
   useEffect(() => {
     const fetchResult = async () => {
-      const result: MetricResult<TMetric> = await api!.metrics.query(
+      const result: MetricResult<TMetric> = await api.metrics.query(
         props.query,
       );
       setResult(result);
     };
 
-    fetchResult();
+    void fetchResult();
   }, [props.query, api]);
 
   return (
