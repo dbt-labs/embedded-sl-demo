@@ -9,7 +9,7 @@ adbc-driver-manager==1.2.0
     #   -r deps/requirements.lock
     #   adbc-driver-flightsql
     #   dbt-sl-sdk
-aiohappyeyeballs==2.4.0
+aiohappyeyeballs==2.4.2
     # via
     #   -r deps/requirements.lock
     #   aiohttp
@@ -36,7 +36,7 @@ backoff==2.2.1
     # via
     #   -r deps/requirements.lock
     #   gql
-basedpyright==1.17.5
+basedpyright==1.18.0
     # via -r deps/dev.in
 dbt-sl-sdk==0.5.0
     # via -r deps/requirements.lock
@@ -97,11 +97,15 @@ pydantic-core==2.23.4
     #   pydantic
 pydantic-settings==2.5.2
     # via -r deps/requirements.lock
+pyjwt==2.9.0
+    # via -r deps/requirements.lock
 python-dotenv==1.0.1
     # via
     #   -r deps/requirements.lock
     #   pydantic-settings
-ruff==0.6.7
+python-multipart==0.0.10
+    # via -r deps/requirements.lock
+ruff==0.6.8
     # via -r deps/dev.in
 sniffio==1.3.1
     # via
@@ -120,7 +124,7 @@ typing-extensions==4.12.2
     #   mashumaro
     #   pydantic
     #   pydantic-core
-yarl==1.12.1
+yarl==1.13.0
     # via
     #   -r deps/requirements.lock
     #   aiohttp

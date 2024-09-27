@@ -1,3 +1,5 @@
 dbt-sl-sdk[async]
 fastapi
 pydantic-settings
+PyJWT
+python-multipart

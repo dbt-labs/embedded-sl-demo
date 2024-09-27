@@ -16,5 +16,7 @@ class Settings(BaseSettings):
 
     sl: SemanticLayerSettings
 
+    auth_signing_secret: str
+
 
 settings = Settings()  # type: ignore

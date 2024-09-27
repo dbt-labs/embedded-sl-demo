@@ -1,5 +1,4 @@
 import asyncio
-import base64
 import datetime as dt
 import json
 import os
@@ -7,14 +6,16 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Annotated
 
+import jwt
 import pyarrow as pa
 from dbtsl.asyncio import AsyncSemanticLayerClient
-from fastapi import Depends, FastAPI, Header, HTTPException, Query
+from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestFormStrict
 
 import src.out_models as out
 from src.db import db
-from src.models import AuthContext, StoreEmployee
+from src.models import AuthContext, JWTClaims, StoreEmployee
 from src.settings import settings
 
 sl = AsyncSemanticLayerClient(
@@ -31,41 +32,6 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         yield
 
 
-BEARER_PREFIX = "Bearer "
-
-
-def auth(authorization: Annotated[str | None, Header()]) -> AuthContext:
-    """Dependency resolver for authentication.
-
-    Note that this is not "secure", since this is just a demo app.
-    The user simply needs to pass `Authorization: Bearer <user_id>`
-    to authorize as the user with that ID. In a real application,
-    you probably want to do proper auth and get the user ID from the
-    token.
-    """
-    unauthorized = HTTPException(status_code=401)
-    if authorization is None:
-        raise unauthorized
-
-    if not authorization.startswith(BEARER_PREFIX):
-        raise unauthorized
-
-    token = authorization[len(BEARER_PREFIX) :]
-
-    try:
-        user_id = int(token)
-    except ValueError:
-        raise unauthorized
-
-    user = db.get_user(user_id)
-    if user is None:
-        raise unauthorized
-
-    return AuthContext(employee=user)
-
-
-AuthDependency = Annotated[AuthContext, Depends(auth)]
-
 app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
@@ -77,32 +43,76 @@ app.add_middleware(
 )
 
 
-BASIC_PREFIX = "Basic "
+JWT_SIGN_ALGORITHM = "HS256"
+JWT_EXPIRE_SECONDS = 60 * 15  # 15min access token expiration
+JWT_DECODE_OPTIONS = {"require": ["exp", "iat", "sub"]}
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
 
-@app.post("/auth", response_model=out.User)
-async def login(authorization: Annotated[str | None, Header()]) -> StoreEmployee:
-    """Get an existing user if username and password match."""
-    unauthorized = HTTPException(status_code=401)
-    if authorization is None:
-        raise unauthorized
-
-    if not authorization.startswith(BASIC_PREFIX):
-        raise unauthorized
-
-    encoded_identity = authorization[len(BASIC_PREFIX) :]
-
+def decode_token(token: str) -> JWTClaims:
+    """Decode a JWT token, raise 401 if token is invalid."""
     try:
-        identity_str = base64.b64decode(encoded_identity).decode("utf-8")
-        email, password = identity_str.split(":")
-    except ValueError:
-        raise HTTPException(status_code=400)
+        claims_dict = jwt.decode(  # type: ignore
+            token, settings.auth_signing_secret, algorithms=[JWT_SIGN_ALGORITHM], options=JWT_DECODE_OPTIONS
+        )
+    except Exception:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid authentication credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
-    user = db.get_user_by_email_and_password(email, password)
+    return JWTClaims.model_validate(claims_dict)
+
+
+def auth(token: Annotated[str, Depends(oauth2_scheme)]) -> AuthContext:
+    """Dependency resolver for authentication.
+
+    Note that this is not "secure", since this is just a demo app.
+    The user simply needs to pass `Authorization: Bearer <user_id>`
+    to authorize as the user with that ID. In a real application,
+    you probably want to do proper auth and get the user ID from the
+    token.
+    """
+    unauthorized = HTTPException(status_code=401)
+
+    claims = decode_token(token)
+
+    user = db.get_user(claims.sub)
     if user is None:
         raise unauthorized
 
-    return user
+    return AuthContext(employee=user)
+
+
+AuthDependency = Annotated[AuthContext, Depends(auth)]
+
+
+@app.post("/auth/token", response_model=out.OAuthLoginResponse)
+async def oauth_token_endpoint(
+    form_data: Annotated[OAuth2PasswordRequestFormStrict, Depends()],
+) -> out.OAuthLoginResponse:
+    """Return a JWT bearer token if the user is found."""
+    user = db.get_user_by_email_and_password(form_data.username, form_data.password)
+    if user is None:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid username or password",
+        )
+
+    claims = JWTClaims.from_user_id(
+        user_id=user.id,
+        expiration_seconds=JWT_EXPIRE_SECONDS,
+    )
+    token = jwt.encode(  # type: ignore
+        payload=claims.model_dump(), key=settings.auth_signing_secret, algorithm=JWT_SIGN_ALGORITHM, sort_headers=True
+    )
+
+    return out.OAuthLoginResponse(
+        access_token=token,
+        expires_in=JWT_EXPIRE_SECONDS,
+    )
 
 
 @app.get("/users/me", response_model=out.User)
