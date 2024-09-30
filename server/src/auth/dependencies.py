@@ -32,14 +32,7 @@ def decode_token(token: str) -> JWTClaims:
 
 
 def auth(token: Annotated[str, Depends(oauth2_scheme)]) -> AuthContext:
-    """Dependency resolver for authentication.
-
-    Note that this is not "secure", since this is just a demo app.
-    The user simply needs to pass `Authorization: Bearer <user_id>`
-    to authorize as the user with that ID. In a real application,
-    you probably want to do proper auth and get the user ID from the
-    token.
-    """
+    """Dependency resolver for authentication which parses the JWT."""
     unauthorized = HTTPException(status_code=401)
 
     claims = decode_token(token)

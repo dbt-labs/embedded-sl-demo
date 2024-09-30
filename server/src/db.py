@@ -25,7 +25,10 @@ class Database:
         return None
 
 
+# NOTE: this is a fake in-memory database with plaintext passwords for demonstration purposes.
+# Needless to say, don't do this in real life :)
 db = Database()
+
 db.insert_user(
     User(
         id=0,
@@ -59,6 +62,6 @@ db.insert_user(
         name="Will",
         store_location_name="Chicago",
         email="will@jaffle.shop",
-        password="devon",
+        password="will",
     )
 )
