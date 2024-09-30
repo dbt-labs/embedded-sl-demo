@@ -26,6 +26,7 @@ class Settings(BaseSettings):
 
     sl: SemanticLayerSettings
     auth: AuthSettings
+    cors_allow_origins: list[str]
 
 
 settings = Settings()  # type: ignore

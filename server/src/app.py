@@ -1,5 +1,3 @@
-import json
-import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -37,7 +35,7 @@ app.include_router(router_metrics)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=json.loads(os.environ["CORS_ALLOW_ORIGINS"]),
+    allow_origins=settings.cors_allow_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

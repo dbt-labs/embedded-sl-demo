@@ -1,0 +1,19 @@
+version: "3"
+
+services:
+  ui:
+    build:
+      context: .
+      target: dev
+    env_file: .env
+    ports:
+      - "8080:5173"
+    volumes:
+      - type: bind
+        source: src/
+        target: /build/src
+        read_only: true
+      - type: bind
+        source: public/
+        target: /build/public
+        read_only: true

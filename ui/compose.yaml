@@ -1,0 +1,10 @@
+version: "3"
+
+services:
+  ui:
+    build:
+      context: .
+      target: prod
+    env_file: .env
+    ports:
+      - "8080:80"

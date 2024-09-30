@@ -1,4 +1,6 @@
 version: "3"
 
+name: embedded-sl-demo-dev
 include:
   - server/dev.compose.yaml
+  - ui/dev.compose.yaml
