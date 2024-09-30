@@ -13,9 +13,6 @@ router = APIRouter(
     prefix="/auth",
 )
 
-JWT_SIGN_ALGORITHM = "HS256"
-JWT_EXPIRE_SECONDS = 60 * 15  # 15min access token expiration
-
 
 @router.post("/token", response_model=OAuthLoginResponse)
 async def oauth_token_endpoint(
@@ -31,7 +28,7 @@ async def oauth_token_endpoint(
 
     claims = JWTClaims.from_user_id(
         user_id=user.id,
-        expiration_seconds=JWT_EXPIRE_SECONDS,
+        expiration_seconds=settings.auth.jwt_expire_sec,
     )
     token = jwt.encode(  # type: ignore
         payload=claims.model_dump(),
@@ -42,5 +39,5 @@ async def oauth_token_endpoint(
 
     return OAuthLoginResponse(
         access_token=token,
-        expires_in=JWT_EXPIRE_SECONDS,
+        expires_in=settings.auth.jwt_expire_sec,
     )
