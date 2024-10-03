@@ -15,7 +15,6 @@ RUN npm install --production=false
 
 COPY index.html .
 COPY src/ src/
-COPY public/ public/
 
 RUN npm run build
 
