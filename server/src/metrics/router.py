@@ -47,8 +47,7 @@ async def get_orders(
         metrics=[metric],
         group_by=[group_by],
         where=where,
-        # TODO: fix SDK bug with order_by
-        # order_by=[group_by],
+        order_by=[group_by],
     )
 
     table, sql = await asyncio.gather(query_task, sql_task)
