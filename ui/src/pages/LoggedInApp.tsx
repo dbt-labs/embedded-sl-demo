@@ -28,7 +28,7 @@ export default function LoggedInApp() {
 
   // TODO: move query away from here
   const end = new Date();
-  const start = new Date();
+  const start = new Date("2016-01-01");
   start.setDate(end.getDate() - 30);
 
   const query = dailyOrders(start, end);

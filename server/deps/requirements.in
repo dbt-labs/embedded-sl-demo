@@ -3,3 +3,4 @@ fastapi
 pydantic-settings
 PyJWT
 python-multipart
+clickhouse-connect

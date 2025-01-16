@@ -54,8 +54,8 @@ class MetricsGroupedBy[TGroupBy: ValueType, TMetrics: ValueType](BaseModel):
     @classmethod
     def from_arrow(cls, group_by: str, metrics: list[str], table: pa.Table) -> MetricsGroupedBy[TGroupBy, TMetrics]:
         """Construct a MetricsGroupedBy from a PyArrow table."""
-        metrics_data_list: list[list[TMetrics]] = [table[metric.upper()].to_pylist() for metric in metrics]  # type: ignore
-        group_by_data: list[TGroupBy] = table[group_by.upper()].to_pylist()  # type: ignore
+        metrics_data_list: list[list[TMetrics]] = [table[metric].to_pylist() for metric in metrics]  # type: ignore
+        group_by_data: list[TGroupBy] = table[group_by].to_pylist()  # type: ignore
 
         return MetricsGroupedBy[TGroupBy, TMetrics](
             metrics=[

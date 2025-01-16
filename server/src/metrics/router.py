@@ -6,6 +6,7 @@ import pyarrow as pa
 from fastapi import APIRouter, Query
 
 from src.auth import AuthDependency
+from src.clickhouse import Clickhouse
 from src.dependencies import SemanticLayerDependency
 from src.metrics.models_out import Metric, MetricsGroupedBy, SemanticLayerQuery
 
@@ -37,31 +38,46 @@ async def get_orders(
     if end is not None:
         where.append(f"{{{{ TimeDimension('metric_time', 'day') }}}} <= '{end}'")
 
-    query_task = sl.query(
-        metrics=[metric],
-        group_by=[group_by],
-        where=where,
-        order_by=[group_by],
-    )
-    sql_task = sl.compile_sql(
+    # query_task = sl.query(
+    #     metrics=[metric],
+    #     group_by=[group_by],
+    #     where=where,
+    #     order_by=[group_by],
+    # )
+
+    sql = await sl.compile_sql(
         metrics=[metric],
         group_by=[group_by],
         where=where,
         order_by=[group_by],
     )
 
-    table, sql = await asyncio.gather(query_task, sql_task)
+    table = Clickhouse().query(sql)
 
-    # cast table from datetime to date
-    # TODO: have to use type ignores here because pyarrow-stubs isn't typed correctly and pyright doesn't like it
-    # See: https://github.com/zen-xu/pyarrow-stubs/issues
+    #
+    # # cast table from datetime to date
+    # # TODO: have to use type ignores here because pyarrow-stubs isn't typed correctly and pyright doesn't like it
+    # # See: https://github.com/zen-xu/pyarrow-stubs/issues
     schema = pa.schema(  # type: ignore
         [
-            pa.field(group_by.upper(), pa.date32()),  # type: ignore
-            pa.field(metric.upper(), pa.float64()),  # type: ignore
+            pa.field(group_by, pa.date32()),  # type: ignore
+            pa.field(metric, pa.float64()),  # type: ignore
         ]
     )
-    table = table.cast(schema)
+
+    # Convert uint32 to timestamp first, then to date32 - Datetime from clickhouse is uint32
+    date_col = table.column(0)
+    date_col = pa.compute.divide(date_col, 86400)  # Seconds in a day
+    date_col = pa.compute.floor(date_col)  # Ensure whole numbers
+    date_col = pa.compute.cast(date_col, pa.int32())  # First cast to int32
+    date_col = pa.compute.cast(date_col, pa.date32())  # Then to date32
+
+    # Create new table with converted date column
+    table = pa.Table.from_arrays(
+        [date_col, table.column(1)],
+        schema=schema
+    )
+    # table = table.cast(schema)
 
     out_data = MetricsGroupedBy[dt.date, float].from_arrow(group_by, [metric], table)
 

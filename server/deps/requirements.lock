@@ -22,6 +22,10 @@ attrs==24.2.0
     # via aiohttp
 backoff==2.2.1
     # via gql
+certifi==2024.12.14
+    # via clickhouse-connect
+clickhouse-connect==0.8.14
+    # via -r deps/requirements.in
 dbt-sl-sdk==0.6.0
     # via -r deps/requirements.in
 fastapi==0.115.2
@@ -40,6 +44,8 @@ idna==3.10
     #   yarl
 importlib-resources==6.4.5
     # via adbc-driver-flightsql
+lz4==4.3.3
+    # via clickhouse-connect
 mashumaro==3.13.1
     # via dbt-sl-sdk
 multidict==6.1.0
@@ -66,6 +72,8 @@ python-dotenv==1.0.1
     # via pydantic-settings
 python-multipart==0.0.12
     # via -r deps/requirements.in
+pytz==2024.2
+    # via clickhouse-connect
 sniffio==1.3.1
     # via anyio
 starlette==0.40.0
@@ -78,7 +86,11 @@ typing-extensions==4.12.2
     #   mashumaro
     #   pydantic
     #   pydantic-core
+urllib3==2.3.0
+    # via clickhouse-connect
 yarl==1.15.5
     # via
     #   aiohttp
     #   gql
+zstandard==0.23.0
+    # via clickhouse-connect
